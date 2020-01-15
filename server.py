@@ -26,16 +26,41 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-
+# https://stackoverflow.com/questions/10114224/how-to-properly-send-http-response-with-python-using-socket-library-only
 class MyWebServer(socketserver.BaseRequestHandler):
+
+    path = "www/" #hmm
+    status = {'200': "OK", '404':"404 Page Not Found", '405':"405 Method Not Allowed", '301':"301 Page Moved"}
+    
+    
     
     def handle(self):
-        self.data = self.request.recv(1024).strip()
+        self.data = self.request.recv(1024).strip().decode()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        response = self.parse(self.data)
+        self.request.sendall(bytearray(response,'utf-8'))
+        #self.request.sendall(bytearray(open('www/index.html','r').read(), 'utf-8'))
+        
+    def parse(self, request):
+        http = "HTTP/1.1"
+        statusCode = '200'
+        statusMessage = MyWebServer.status[statusCode]
+        
+        response_line = http + ' ' + statusCode + ' ' + statusMessage + '\n\n' + open('www/index.html','r').read()
+        
+        print("-----------------")
+        print(response_line)
+        
+        return response_line
+        
+    
+    
+    
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
+    
+    #print(bytearray(open('README.md','r').read(), 'utf-8'))
 
     socketserver.TCPServer.allow_reuse_address = True
     # Create the server, binding to localhost on port 8080
@@ -44,3 +69,6 @@ if __name__ == "__main__":
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     server.serve_forever()
+    #server.shutdown()
+    #server.server_close()
+    
