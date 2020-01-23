@@ -32,7 +32,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     path_start = "www" #hmm
     status = {200: "HTTP/1.1 200 OK\r\n", 404:"HTTP/1.1 404 Page Not Found\r\n", 405:"HTTP/1.1 405 Method Not Allowed\r\n", 301:"HTTP/1.1 301 Page Moved\r\n"}
-    hostname = "localhost:8091"
+    hostname = "127.0.0.1:8082"
     
     
     def handle(self):
@@ -41,7 +41,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         parse_result = self.parse(self.data)
         response = self.get(parse_result)
         self.request.sendall(bytearray(response,'utf-8'))
-        #self.request.sendall(bytearray(open('www/index.html','r').read(), 'utf-8'))
         
     def parse(self, request):
         
@@ -78,30 +77,39 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         if ((statusCode == 405) or (statusCode == 404)):
             statusMessage = MyWebServer.status[statusCode]
+            conType = "Content-Type: text/html\r\n"
+            body = open('405.html','r').read() if (statusCode == 405) else open('404.html','r').read()
+            conLen = "Content-Length: " + str(len(body)) + "\r\n"
+            response_line = ''.join([statusMessage, server, date, conType, conLen, connection, end, body])
+                
         else:
-            if (statusCode[-1] == '/'):
-                statusCode += 'index.html'
-                statusMessage = MyWebServer.status[301]
-                location = "Location: http://" + MyWebServer.hostname + statusCode + "\r\n"
-                response_line = ''.join([statusMessage, server, date, conLen, connection, location, end, body])
-            
-            elif (('.' not in statusCode) and (statusCode[-1] != '/')):
+            if (('.' not in statusCode) and (statusCode[-1] != '/')):
+                # redirect to for a slash
                 statusCode += '/'
                 statusMessage = MyWebServer.status[301]
                 location = "Location: http://" + MyWebServer.hostname + statusCode + "\r\n"
-                response_line = ''.join([statusMessage, server, date, conLen, connection, location, end, body])
+                conType = "Content-Type: text/html\r\n"
+                body = open('301.html','r').read()
+                conLen = "Content-Length: " + str(len(body)) + "\r\n"
+                response_line = ''.join([statusMessage, server, date, conType, conLen, connection, location, end, body])
             
             else:
                 try:
+                    # open file to send
+                    if (statusCode[-1] == '/'):
+                        statusCode += 'index.html'
                     body = open(MyWebServer.path_start + statusCode,'r').read()
                     statusMessage = MyWebServer.status[200]
                     conLen = "Content-Length: " + str(len(body)) + "\r\n"
+                    conType = "Content-Type: text/" + statusCode.split('.')[-1] + "\r\n"
                 except:
                     statusMessage = MyWebServer.status[404]
-                response_line = ''.join([statusMessage, server, date, conLen, connection, end, body])
-        
-        #response_line = ''.join([statusMessage, server, date, conType, conLen, connection, end, body])
-        #response_line = http + ' ' + statusCode + ' ' + statusMessage + '\r\n\r\n' + open('www/index.html','r').read()
+                    conType = "Content-Type: text/html\r\n"
+                    body = open('404.html','r').read()
+                    conLen = "Content-Length: " + str(len(body)) + "\r\n"
+
+                response_line = ''.join([statusMessage, server, date, conType, conLen, connection, end, body])
+
         
         print("-----------------")
         print(statusCode)  # what was requested
@@ -114,7 +122,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
 
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8091
+    HOST, PORT = "localhost", 8082
     
     #print(bytearray(open('README.md','r').read(), 'utf-8'))
 
