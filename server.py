@@ -1,6 +1,7 @@
 #  coding: utf-8 
 import socketserver
 import datetime
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -32,7 +33,8 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
     path_start = "www" #hmm
     status = {200: "HTTP/1.1 200 OK\r\n", 404:"HTTP/1.1 404 Page Not Found\r\n", 405:"HTTP/1.1 405 Method Not Allowed\r\n", 301:"HTTP/1.1 301 Page Moved\r\n"}
-    hostname = "127.0.0.1:8082"
+    hostname = "127.0.0.1:8080"
+    absPath = os.path.abspath("www/")
     
     
     def handle(self):
@@ -98,6 +100,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     # open file to send
                     if (statusCode[-1] == '/'):
                         statusCode += 'index.html'
+                    self.verify(statusCode)
                     body = open(MyWebServer.path_start + statusCode,'r').read()
                     statusMessage = MyWebServer.status[200]
                     conLen = "Content-Length: " + str(len(body)) + "\r\n"
@@ -109,7 +112,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
                     conLen = "Content-Length: " + str(len(body)) + "\r\n"
 
                 response_line = ''.join([statusMessage, server, date, conType, conLen, connection, end, body])
-
         
         print("-----------------")
         print(statusCode)  # what was requested
@@ -117,12 +119,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
         
         return response_line
         
+    def verify(self, path):
+        # verify that the requested path is in www
+        requestedPath = os.path.abspath(MyWebServer.path_start + path)
+        #common = os.path.commonpath([requestedPath, MyWebServer.absPath])
+        
+        if (MyWebServer.absPath not in requestedPath):
+            raise
     
-    
-    
-
 if __name__ == "__main__":
-    HOST, PORT = "localhost", 8082
+    HOST, PORT = "localhost", 8080
     
     #print(bytearray(open('README.md','r').read(), 'utf-8'))
 
