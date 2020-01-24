@@ -28,7 +28,11 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-# https://stackoverflow.com/questions/10114224/how-to-properly-send-http-response-with-python-using-socket-library-only
+# references:
+#   Hindle, Campbell, 2019, Web Applications and Architecture Part 04: HTTP, lecture notes,
+#    HTTP CMPUT404, University of Aberta, January 20, 2019.
+#
+
 class MyWebServer(socketserver.BaseRequestHandler):
 
     path_start = "www" #hmm
