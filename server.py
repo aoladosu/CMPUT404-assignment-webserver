@@ -43,7 +43,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(4096).strip().decode()
-        print ("Got a request of: %s\n" % self.data)
+        #print("Got a request of: %s\n" % self.data)
         parse_result = self.parse(self.data)
         response = self.get(parse_result)
         self.request.sendall(bytearray(response,'utf-8'))
@@ -117,9 +117,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
                 response_line = ''.join([statusMessage, server, date, conType, conLen, connection, end, body])
         
-        print("-----------------")
-        print(statusCode)  # what was requested
-        print(response_line)
+        #print("-----------------")
+        #print(statusCode)  # what was requested
+        #print(response_line)
         
         return response_line
         
